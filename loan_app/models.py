@@ -54,3 +54,29 @@ class Loan(PrimaryKeyModel):
 
     def __str__(self):
         return self.customer.name + " - " + self.loan_type + " Loan"
+
+
+# LoanDetail Model
+# to store loan transaction against loan
+class LoanDetail(models.Model):
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name="loan")
+    last_transaction_date = models.DateTimeField(blank=True, null=True)
+    next_emi_date = models.DateField(blank=True, null=True)
+    next_emi_amount = models.DecimalField(
+        decimal_places=2, max_digits=10, blank=True, null=True
+    )
+    is_active = models.BooleanField(default=True)
+    initial_emi_amounts = models.CharField(max_length=1000)
+    total_emis_left = models.IntegerField()
+
+    def set_adjusted_emi_amounts(self, lst):
+        self.adjusted_emi_amounts = json.dumps(lst)
+
+    def get_adjusted_emi_amounts(self):
+        return json.loads(self.adjusted_emi_amounts)
+
+    def set_initial_emi_amounts(self, lst):
+        self.initial_emi_amounts = json.dumps(lst)
+
+    def get_initial_emi_amounts(self):
+        return json.loads(self.initial_emi_amounts)
