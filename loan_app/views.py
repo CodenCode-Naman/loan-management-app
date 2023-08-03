@@ -14,21 +14,18 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from .tasks import get_credit_score
 
-
-# POST api - api/register-user
 # POST api - api/apply-loan
 # POST api - api/make-payment
 # GET api - api/get-statement
 
 
-# register user api
+# register user api - POST api - api/register-user
 class CustomerView(APIView):
-    authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
 
     def get(self, request):
-        content = {"message": "Hello, Customer!"}
-        return Response(content)
+        return Response({"message": "Hello, Customer!"})
 
     def post(self, request):
         try:
@@ -42,13 +39,11 @@ class CustomerView(APIView):
                     aadhar_id=data["aadhar_id"],
                     annual_income=data["annual_income"],
                 )
-
-                # ASYNC CELERY TASK
                 get_credit_score.delay(customer.id)
 
                 response_data = {
                     "id": customer.id,
-                    "message": "User registered successfully",
+                    "message": "User Registered Successfully!",
                 }
                 return Response(response_data, status=status.HTTP_201_CREATED)
             else:
@@ -58,6 +53,9 @@ class CustomerView(APIView):
                 )
         except JSONDecodeError:
             return JsonResponse(
-                {"result": "error", "message": "Json decoding error"},
+                {
+                    "result": "error", 
+                    "message": "Json Error"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
