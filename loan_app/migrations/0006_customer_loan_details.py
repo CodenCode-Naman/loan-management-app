@@ -6,7 +6,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("loan_app", "0005_alter_customer_aadhar_id_alter_customer_email_id"),
+        ("loan_app", "0005_alter_customer_email_id_aadhar_id"),
     ]
 
     operations = [

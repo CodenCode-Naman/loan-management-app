@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("loan_app", "0003_alter_customer_aadhar_id"),
+        ("loan_app", "0003_alter_customer_id"),
     ]
 
     operations = [

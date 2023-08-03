@@ -5,9 +5,9 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("loan_app", "0002_accounttransaction_remove_loan_emi_and_more"),
+        ("loan_app", "0002_account_transaction_loan_operations"),
     ]
-
+    
     operations = [
         migrations.AlterField(
             model_name="customer",
