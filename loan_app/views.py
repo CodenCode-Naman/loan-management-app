@@ -1,22 +1,18 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .serializers import CustomerSerializer
-from .models import Customer
 from json import JSONDecodeError
-from django.http import JsonResponse
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import IsAuthenticated
+from .serializers import CustomerSerializer, LoanSerializer, LoanDetailSerializer
+from .models import Customer, Loan, LoanDetail, Transaction
+from django.http import JsonResponse
 from rest_framework.authentication import TokenAuthentication
-import math
-from decimal import Decimal
-from datetime import datetime
+from rest_framework.permissions import IsAuthenticated
 from dateutil.relativedelta import relativedelta
 from .tasks import get_credit_score
-
-# POST api - api/apply-loan
-# POST api - api/make-payment
-# GET api - api/get-statement
+from decimal import Decimal
+from datetime import datetime
+import math
 
 
 # register user api - POST api - api/register-user
@@ -43,7 +39,7 @@ class CustomerView(APIView):
 
                 response_data = {
                     "id": customer.id,
-                    "message": "User Registered Successfully!",
+                    "message": "Customer Registered Successfully!",
                 }
                 return Response(response_data, status=status.HTTP_201_CREATED)
             else:
@@ -226,7 +222,6 @@ class LoanApplicationView(APIView):
             )
 
 
-
 # make payment api - POST api - api/make-payment
 class LoanPaymentView(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -279,7 +274,7 @@ class LoanPaymentView(APIView):
                     loan=loan,
                     payment_date=today,
                 )
-                
+
                 loan.remaining_amount -= payment_amount
                 loan.save()
 
@@ -307,6 +302,98 @@ class LoanPaymentView(APIView):
                     "message": "Payment made successfully",
                 }
                 return Response(response_data, status=status.HTTP_200_OK)
+            else:
+                error_message = serializer.errors
+                return Response(
+                    {"error": error_message}, status=status.HTTP_400_BAD_REQUEST
+                )
+        except JSONDecodeError:
+            return JsonResponse(
+                {"result": "error", "message": "Json error"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+# GET api - api/get-statement
+class LoanStatementView(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        try:
+            data = JSONParser().parse(request)
+
+            serializer = LoanDetailSerializer(data=data)
+            if serializer.is_valid(raise_exception=True):
+                try:
+                    loan = Loan.objects.get(id=data["loan_id"])
+                except Loan.DoesNotExist:
+                    return Response(
+                        {"error": "Loan does not exists: loan-id not found"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                loan_details = LoanDetail.objects.get(loan_id=loan.id)
+                if loan_details.is_active is False:
+                    return Response(
+                        {"error": "Loan is not active currently"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                customer_transactions = Transaction.objects.filter(
+                    customer_id=loan.customer.id,
+                    loan_id=loan.id,
+                )
+
+                upcoming = []
+
+                if len(customer_transactions) == 0:
+                    monthly_emi = loan.remaining_amount / loan_details.total_emis_left
+                    disbursal_date_dtf = datetime.strptime(
+                        loan.disbursal_date, "%d-%m-%Y"
+                    )
+                    emi_start_date = disbursal_date_dtf + relativedelta(day=1, months=1)
+                    for i in range(loan_details.total_emis_left):
+                        data = {}
+                        data["amount_due"] = monthly_emi
+                        data["emi_date"] = emi_start_date + relativedelta(
+                            day=1, months=i
+                        )
+                        upcoming.append(data)
+
+                    return Response(
+                        {
+                            "past_transactions": [],
+                            "upcoming_transactions": upcoming,
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+                past_transactions = []
+                for txn in customer_transactions:
+                    past_txn = {}
+                    past_txn["date"] = txn.payment_date
+                    past_txn["amount_paid"] = txn.payment
+                    past_txn["interest"] = loan.interest_rate
+                    past_txn["principal"] = loan.remaining_amount
+
+                    past_transactions.append(past_txn)
+
+                tenure_left = loan_details.total_emis_left
+                amount_left = loan.remaining_amount
+                monthly_emi = amount_left / tenure_left
+                for i in range(tenure_left):
+                    data = {}
+                    data["amount_due"] = monthly_emi
+                    data["emi_date"] = loan_details.next_emi_date + relativedelta(
+                        day=1, months=i
+                    )
+                    upcoming.append(data)
+
+                response = {
+                    "past_transactions": past_transactions,
+                    "upcoming_transactions": upcoming,
+                }
+
+                return Response(response, status=status.HTTP_200_OK)
             else:
                 error_message = serializer.errors
                 return Response(
