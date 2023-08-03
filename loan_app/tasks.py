@@ -1,4 +1,3 @@
-from celery import Celery
 from celery import shared_task
 from .models import AccountTransaction, Customer
 import logging
@@ -8,17 +7,18 @@ import logging
 def get_credit_score(customer_id):
     try:
         customer = Customer.objects.get(id=customer_id)
-        credit = sum(
-            list(
-                AccountTransaction.objects.filter(
-                    aadhar_id=customer.aadhar_id, transaction_type="credit"
-                )
-            )
-        )
+        
         debit = sum(
             list(
                 AccountTransaction.objects.filter(
                     aadhar_id=customer.aadhar_id, transaction_type="debit"
+                )
+            )
+        )
+        credit = sum(
+            list(
+                AccountTransaction.objects.filter(
+                    aadhar_id=customer.aadhar_id, transaction_type="credit"
                 )
             )
         )
@@ -34,5 +34,6 @@ def get_credit_score(customer_id):
 
         customer.credit_score = credit_score
         customer.save()
+
     except Exception as e:
         logging.error(f"Error: Cannot calculate Credit Score!")
