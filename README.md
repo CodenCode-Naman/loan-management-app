@@ -13,7 +13,7 @@ Create a virtual environment and install all dependencies from requirements.txt 
 pip install -r requirements.txt
 ```
 
-## Please note to install & start RabbitMQ server in the machine
+## Install & start RabbitMQ server in the machine
 
 #### Command to Start Celery
 ```
