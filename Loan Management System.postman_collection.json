@@ -1,0 +1,169 @@
+{
+	"info": {
+		"_postman_id": "32fbbfcf-3d58-4677-91ef-efc6a8c5ea7c",
+		"name": "Loan Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28887119"
+	},
+	"item": [
+		{
+			"name": "Register User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token 61fd355b00aae29652fd5fae1e6753c69f54bae7",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"aadhar_id\": \"af2ffb0c-6837-47dd-88df-e7b9f8285fm0\",\r\n    \"name\": \"Aman Grag\",\r\n    \"email_id\": \"garg@gmail.com\",\r\n    \"annual_income\": 8000000\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/register-user/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"register-user",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Apply Loan",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token 61fd355b00aae29652fd5fae1e6753c69f54bae7",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"unique_user_id\": \"11fd1a9b-d200-4687-962d-141d10dd8ce4\",\r\n    \"loan_type\": \"home\",\r\n    \"loan_amount\": 1000000,\r\n    \"interest_rate\": 14,\r\n    \"term_period\": 22,\r\n    \"disbursement_date\": \"14-01-2020\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/apply-loan/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"apply-loan",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Make Payment",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token 61fd355b00aae29652fd5fae1e6753c69f54bae7",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"loan_id\": \"4dd77845-b9ba-47bb-aa0c-3b9f22b83f90\",\r\n    \"amount\": 20\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/make-payment/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"make-payment",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Statement",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token 61fd355b00aae29652fd5fae1e6753c69f54bae7",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"loan_id\": \"4dd77845-b9ba-47bb-aa0c-3b9f22b83f90\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/get-statement/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"get-statement",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
