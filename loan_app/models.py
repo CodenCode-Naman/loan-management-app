@@ -14,6 +14,7 @@ class Customer(PrimaryKeyModel):
     def __str__(self):
         return self.name
 
+
 # AccountTransaction Model
 # to store customers account balance and transactions
 class AccountTransaction(models.Model):
@@ -80,3 +81,17 @@ class LoanDetail(models.Model):
 
     def get_initial_emi_amounts(self):
         return json.loads(self.initial_emi_amounts)
+
+
+# Transaction Model
+# to store emi details against loan
+class Transaction(models.Model):
+    payment = models.DecimalField(max_digits=10, decimal_places=2)
+    loan = models.ForeignKey(
+        Loan, on_delete=models.CASCADE, related_name="loan_transactions"
+    )
+    customer = models.ForeignKey(
+        Customer, on_delete=models.CASCADE, related_name="customer_transactions"
+    )
+   
+    payment_date = models.DateTimeField(auto_now=True)
