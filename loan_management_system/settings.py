@@ -37,6 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Internal Apps
+    "loan_app",
+    # External Packages
+    "rest_framework",
+    "rest_framework.authtoken",
+    'django_celery_results',
+    'celery',
 ]
 
 MIDDLEWARE = [
