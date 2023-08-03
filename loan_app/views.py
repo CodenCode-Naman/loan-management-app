@@ -59,3 +59,169 @@ class CustomerView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+# apply loan api - POST api - api/apply-loan
+class LoanApplicationView(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        LOAN_CATEGORIES = {
+            "car": 750000,
+            "home": 8500000,
+            "educational": 5000000,
+            "personal": 1000000,
+        }
+        try:
+            data = JSONParser().parse(request)
+            serializer = LoanSerializer(data=data) 
+
+            if serializer.is_valid(raise_exception=True):
+                customer_id = data["unique_user_id"]
+                loan_type = data["loan_type"]
+                principal_amount = data["loan_amount"]
+                interest_rate = data["interest_rate"]
+                loan_term = data["term_period"]
+                disbursal_date = data["disbursement_date"]
+
+                if interest_rate < 14:
+                    return Response(
+                        {"error": "Interest rate should be greater than 14%"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                try:
+                    customer = Customer.objects.get(id=customer_id)
+                    loan = Loan.objects.filter(customer_id=customer.id)
+                except Customer.DoesNotExist:
+                    return Response(
+                        {"error": "Customer not exists"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                except Loan.DoesNotExist:
+                    if customer.credit_score < 450 or customer.credit_score is None:
+                        return Response(
+                            {"error": "Credit Score is low than expected or does not exist"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    elif customer.annual_income < 150000:
+                        return Response(
+                            {
+                                "error": "Customer's annual income is lesser than Rs. 150000"
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    if loan_type.lower() in LOAN_CATEGORIES.keys():
+                        if principal_amount > LOAN_CATEGORIES[loan_type.lower()]:
+                            return Response(
+                                {
+                                    "error": "Requested Loan amount is higher for applied category"
+                                },
+                                status=status.HTTP_400_BAD_REQUEST,
+                            )
+                    else:
+                        return Response(
+                            {"error": "Loan Type: Invalid"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    rate = (interest_rate / 12) / 100
+
+                    emi_amount = (
+                        principal_amount * rate * math.pow((1 + rate), loan_term)
+                    ) / (math.pow((1 + rate), loan_term) - 1)
+
+                    monthly_emi = round(emi_amount, 2)
+                    total_recoverable_amount = monthly_emi * loan_term
+
+                    if monthly_emi > (Decimal(0.6) * customer.annual_income):
+                        return Response(
+                            {"error": "EMI amount exceeds 60% of annual income"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    if (total_recoverable_amount - principal_amount) < 10000:
+                        return Response(
+                            {"error": "Interest earned is less than Rs. 10000"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    disbursal_date_dtf = datetime.strptime(disbursal_date, "%d-%m-%Y")
+                    emi_start_date = disbursal_date_dtf + relativedelta(day=1, months=1)
+
+                    emi_amount_list = list()
+                    emi_due_date_list = list()
+                    due_dates = list()
+
+                    for i in range(loan_term - 1):
+                        emi_amount_list.append(monthly_emi)
+                        emi_due_date_list.append(
+                            emi_start_date + relativedelta(day=1, months=i)
+                        )
+                        due_dates.append(
+                            {
+                                "date": emi_start_date + relativedelta(day=1, months=i),
+                                "amount_due": monthly_emi,
+                            },
+                        )
+                    if total_recoverable_amount - sum(emi_amount_list) > 0:
+                        emi_amount_list.append(
+                            total_recoverable_amount - sum(emi_amount_list)
+                        )
+                        emi_due_date_list.append(
+                            emi_start_date + relativedelta(day=1, months=loan_term - 1)
+                        )
+
+                        due_dates.append(
+                            {
+                                "date": emi_start_date
+                                + relativedelta(day=1, months=loan_term - 1),
+                                "amount_due": total_recoverable_amount
+                                - sum(emi_amount_list),
+                            },
+                        )
+
+                    loan = Loan.objects.create(
+                        loan_type=loan_type,
+                        loan_term=loan_term,
+                        principal_amount=principal_amount,
+                        interest_rate=interest_rate,
+                        disbursal_date=disbursal_date_dtf,
+                        start_date=datetime.now(),
+                        customer_id=customer.id,
+                        remaining_amount=total_recoverable_amount,
+                    )
+                    loan_details = LoanDetail.objects.create(
+                        loan_id_id=loan.id,
+                        next_emi_date=due_dates[0]["date"],
+                        next_emi_amount=due_dates[0]["amount_due"],
+                        total_emis_left=len(due_dates),
+                        is_active=True,
+                    )
+
+                    response = {
+                        "loan_id": loan.id,
+                        "due_dates": due_dates,
+                    }
+
+                    return Response(response, status=status.HTTP_200_OK)
+                else:
+                    return Response(
+                        {"error": "A loan on customer already exists"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            else:
+                error_message = serializer.errors
+                return Response(
+                    {"error": error_message}, status=status.HTTP_400_BAD_REQUEST
+                )
+        except JSONDecodeError:
+            return JsonResponse(
+                {"result": "error", "message": "Json error"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
