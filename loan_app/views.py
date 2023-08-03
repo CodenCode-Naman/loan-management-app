@@ -225,3 +225,95 @@ class LoanApplicationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+
+
+# make payment api - POST api - api/make-payment
+class LoanPaymentView(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            data = JSONParser().parse(request)
+            serializer = LoanDetailSerializer(data=data)
+
+            if serializer.is_valid(raise_exception=True):
+                try:
+                    loan = Loan.objects.get(id=data["loan_id"])
+                    loan_details = LoanDetail.objects.get(loan_id=data["loan_id"])
+                except Loan.DoesNotExist:
+                    return Response(
+                        {"error": "Invalid Loan Id"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                except LoanDetail.DoesNotExist:
+                    return Response(
+                        {"error": "Invalid Loan Id"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                today = datetime.now()
+                last_txn = loan_details.last_transaction_date
+
+                if last_txn is not None:
+                    if (
+                        last_txn.strftime("%m") == today.month
+                        and last_txn.strftime("%Y") == today.year
+                    ):
+                        return Response(
+                            {"error": "Payment already made"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    elif (today - last_txn).month > 1:
+                        return Response(
+                            {"error": "Cannot accept this payment: time overdue"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                customer = loan.customer
+                payment_amount = data["amount"]
+
+                transaction = Transaction.objects.create(
+                    payment=payment_amount,
+                    customer=customer,
+                    loan=loan,
+                    payment_date=today,
+                )
+                
+                loan.remaining_amount -= payment_amount
+                loan.save()
+
+                if payment_amount != loan_details.next_emi_amount:
+                    rate = Decimal((loan.interest_rate / 12) / 100)
+                    emi_amount = (
+                        (loan.remaining_amount - payment_amount)
+                        * rate
+                        * Decimal(math.pow((1 + rate), loan.loan_term))
+                        / Decimal(math.pow((1 + rate), loan.loan_term) - 1)
+                    )
+                    loan_details.next_emi_amount = emi_amount
+
+                loan_details.last_transaction_date = today
+                loan_details.next_emi_date = today + relativedelta(day=1, months=1)
+                loan_details.total_emis_left -= 1
+
+                if loan_details.total_emis_left == 0:
+                    loan_details.is_active = False
+
+                loan_details.save()
+
+                response_data = {
+                    "loan_id": loan.id,
+                    "message": "Payment made successfully",
+                }
+                return Response(response_data, status=status.HTTP_200_OK)
+            else:
+                error_message = serializer.errors
+                return Response(
+                    {"error": error_message}, status=status.HTTP_400_BAD_REQUEST
+                )
+        except JSONDecodeError:
+            return JsonResponse(
+                {"result": "error", "message": "Json error"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
