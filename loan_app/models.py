@@ -28,3 +28,29 @@ class AccountTransaction(models.Model):
 
     def __str__(self):
         return self.transaction_type + " - " + self.amount
+
+
+# Loan Model
+# to store Loan details against customer
+class Loan(PrimaryKeyModel):
+    LOAN_CATEGORIES = [
+        ("car", "car"),
+        ("home", "home"),
+        ("education", "education"),
+        ("personal", "personal"),
+    ]
+
+    loan_type = models.CharField(max_length=25, choices=LOAN_CATEGORIES)
+    principal_amount = models.PositiveIntegerField()
+    interest_rate = models.DecimalField(decimal_places=2, max_digits=5)
+    loan_term = models.PositiveIntegerField()
+    disbursal_date = models.DateTimeField(auto_now=True)
+    start_date = models.DateField(auto_now=True)
+    end_date = models.DateField(null=True, blank=True)
+    customer = models.ForeignKey(
+        Customer, on_delete=models.CASCADE, related_name="loan_customers"
+    )
+    remaining_amount = models.PositiveIntegerField(default=20)
+
+    def __str__(self):
+        return self.customer.name + " - " + self.loan_type + " Loan"
