@@ -1,11 +1,13 @@
 # loan-management-app
 
 #### The project has following features - 
-> Uses Celery for Async tasks
->
+> Apis to register user, apply loan, make payment & ask for statement
+> 
 > RabbitMQ service as message broker
 >
-> Apis to register user, apply loan, make payment & ask for statement
+> Uses Celery for Async tasks
+>
+
 
 
 Create a virtual environment and install all dependencies from requirements.txt file
@@ -14,6 +16,9 @@ pip install -r requirements.txt
 ```
 
 ## Install & start RabbitMQ server in the machine
+```
+rabbitmq-service start
+```
 
 #### Command to Start Celery
 ```
@@ -35,6 +40,7 @@ python manage.py createsuperuser
 ```
 python manage.py drf_create_token <superuser username>
 ```
+##### key: Authorization, value: token_value_generate_from_above
 
 #### Run Django Server
 ```
