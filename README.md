@@ -59,5 +59,18 @@ GET  - api/get-statement/
 python manage.py test
 ```
 
-###### For Reference - Postman Collection of API is there
+###### For Reference - Postman Collection of API is there, for ease-import it to your postman as a json collection
 
+#### Screenshots:
+
+##### 1. Register Customer:
+![image](https://github.com/CodenCode-Naman/loan-management-app/assets/69742938/0d4559f3-9e6b-4be0-9144-21239b769ff2)
+
+##### 2. Apply loan:
+![image](https://github.com/CodenCode-Naman/loan-management-app/assets/69742938/1553ce59-8f5f-4931-9c36-9fa0eb535576)
+
+##### 3. Make the payment:
+![image](https://github.com/CodenCode-Naman/loan-management-app/assets/69742938/c39cc3e6-5111-4c91-9070-e4d7690475c7)
+
+##### 4. Get the final statement:
+![image](https://github.com/CodenCode-Naman/loan-management-app/assets/69742938/d1e6db04-2f5d-4d97-973d-3aea6b044867)
