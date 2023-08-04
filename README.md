@@ -10,7 +10,7 @@
 
 
 
-Create a virtual environment and install all dependencies from requirements.txt file
+Create a virtual environment and install all dependencies from the requirements.txt file
 ```
 pip install -r requirements.txt
 ```
@@ -36,7 +36,7 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-## Please note to add a Authentication Token in request header
+## Add an Authentication Token in the request header
 ```
 python manage.py drf_create_token <superuser username>
 ```
