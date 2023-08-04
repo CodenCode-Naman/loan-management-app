@@ -13,13 +13,13 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Token 61fd355b00aae29652fd5fae1e6753c69f54bae7",
+						"value": "Token e72b83d94946d5fdd7ae9113c91773eb807e9d84",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"aadhar_id\": \"af2ffb0c-6837-47dd-88df-e7b9f8285fm0\",\r\n    \"name\": \"Aman Grag\",\r\n    \"email_id\": \"garg@gmail.com\",\r\n    \"annual_income\": 8000000\r\n}",
+					"raw": "{\r\n    \"aadhar_id\": \"6ad27dc7-9859-4353-ba12-991bec841c81\",\r\n    \"name\": \"Ritik Grag\",\r\n    \"email_id\": \"test@gmail.com\",\r\n    \"annual_income\": 8000000\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -52,13 +52,13 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Token 61fd355b00aae29652fd5fae1e6753c69f54bae7",
+						"value": "Token e72b83d94946d5fdd7ae9113c91773eb807e9d84",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"unique_user_id\": \"11fd1a9b-d200-4687-962d-141d10dd8ce4\",\r\n    \"loan_type\": \"home\",\r\n    \"loan_amount\": 1000000,\r\n    \"interest_rate\": 14,\r\n    \"term_period\": 22,\r\n    \"disbursement_date\": \"14-01-2020\"\r\n}",
+					"raw": "{\r\n    \"unique_user_id\": \"2e786e08-112b-4bb5-b7f8-bdf2fefe747f\",\r\n    \"loan_type\": \"home\",\r\n    \"loan_amount\": 1000000,\r\n    \"interest_rate\": 14,\r\n    \"term_period\": 22,\r\n    \"disbursement_date\": \"14-01-2020\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -91,13 +91,13 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Token 61fd355b00aae29652fd5fae1e6753c69f54bae7",
+						"value": "Token e72b83d94946d5fdd7ae9113c91773eb807e9d84",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"loan_id\": \"4dd77845-b9ba-47bb-aa0c-3b9f22b83f90\",\r\n    \"amount\": 20\r\n}",
+					"raw": "{\r\n    \"loan_id\": \"b1eacc10-9c29-462e-8db2-70e01f42e4f0\",\r\n    \"amount\": 20000\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -133,13 +133,13 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Token 61fd355b00aae29652fd5fae1e6753c69f54bae7",
+						"value": "Token e72b83d94946d5fdd7ae9113c91773eb807e9d84",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"loan_id\": \"4dd77845-b9ba-47bb-aa0c-3b9f22b83f90\"\r\n}",
+					"raw": "{\r\n    \"loan_id\": \"b1eacc10-9c29-462e-8db2-70e01f42e4f0\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"

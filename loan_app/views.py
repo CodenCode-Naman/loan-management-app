@@ -205,8 +205,72 @@ class LoanApplicationView(APIView):
 
                     return Response(response, status=status.HTTP_200_OK)
                 else:
+                    rate = (interest_rate / 12) / 100
+
+                    emi_amount = (
+                        principal_amount * rate * math.pow((1 + rate), loan_term)
+                    ) / (math.pow((1 + rate), loan_term) - 1)
+
+                    monthly_emi = round(emi_amount, 2)
+                    total_recoverable_amount = monthly_emi * loan_term
+                    disbursal_date_dtf = datetime.strptime(disbursal_date, "%d-%m-%Y")
+                    emi_start_date = disbursal_date_dtf + relativedelta(day=1, months=1)
+
+                    emi_amount_list = list()
+                    emi_due_date_list = list()
+                    due_dates = list()
+
+                    for i in range(loan_term - 1):
+                        emi_amount_list.append(monthly_emi)
+                        emi_due_date_list.append(
+                            emi_start_date + relativedelta(day=1, months=i)
+                        )
+                        due_dates.append(
+                            {
+                                "date": emi_start_date + relativedelta(day=1, months=i),
+                                "amount_due": monthly_emi,
+                            },
+                        )
+                    if total_recoverable_amount - sum(emi_amount_list) > 0:
+                        emi_amount_list.append(
+                            total_recoverable_amount - sum(emi_amount_list)
+                        )
+                        emi_due_date_list.append(
+                            emi_start_date + relativedelta(day=1, months=loan_term - 1)
+                        )
+
+                        due_dates.append(
+                            {
+                                "date": emi_start_date
+                                + relativedelta(day=1, months=loan_term - 1),
+                                "amount_due": total_recoverable_amount
+                                - sum(emi_amount_list),
+                            },
+                        )
+
+                    loan = Loan.objects.create(
+                        loan_type=loan_type,
+                        loan_term=loan_term,
+                        principal_amount=principal_amount,
+                        interest_rate=interest_rate,
+                        disbursal_date=disbursal_date_dtf,
+                        start_date=datetime.now(),
+                        customer_id=customer.id,
+                        remaining_amount=total_recoverable_amount,
+                    )
+                    loan_details = LoanDetail.objects.create(
+                        loan_id=loan.id,
+                        next_emi_date=due_dates[0]["date"],
+                        next_emi_amount=due_dates[0]["amount_due"],
+                        total_emis_left=len(due_dates),
+                        is_active=True,
+                    )
+
                     return Response(
-                        {"error": "A loan on customer already exists"},
+                        {
+                            "error": "A loan on customer already exists",
+                            "loan_id": loan.id,
+                        },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
@@ -315,6 +379,7 @@ class LoanPaymentView(APIView):
 
 
 # GET api - api/get-statement
+# Get statement api
 class LoanStatementView(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -329,14 +394,14 @@ class LoanStatementView(APIView):
                     loan = Loan.objects.get(id=data["loan_id"])
                 except Loan.DoesNotExist:
                     return Response(
-                        {"error": "Loan does not exists: loan-id not found"},
+                        {"error": "Loan doesnt exist. Passed Loan id is incorrect"},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
                 loan_details = LoanDetail.objects.get(loan_id=loan.id)
                 if loan_details.is_active is False:
                     return Response(
-                        {"error": "Loan is not active currently"},
+                        {"error": "Loan is not in Active State"},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 customer_transactions = Transaction.objects.filter(
@@ -348,10 +413,7 @@ class LoanStatementView(APIView):
 
                 if len(customer_transactions) == 0:
                     monthly_emi = loan.remaining_amount / loan_details.total_emis_left
-                    disbursal_date_dtf = datetime.strptime(
-                        loan.disbursal_date, "%d-%m-%Y"
-                    )
-                    emi_start_date = disbursal_date_dtf + relativedelta(day=1, months=1)
+                    emi_start_date = loan.disbursal_date + relativedelta(day=1, months=1)
                     for i in range(loan_details.total_emis_left):
                         data = {}
                         data["amount_due"] = monthly_emi
@@ -401,6 +463,6 @@ class LoanStatementView(APIView):
                 )
         except JSONDecodeError:
             return JsonResponse(
-                {"result": "error", "message": "Json error"},
+                {"result": "error", "message": "Json decoding error"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
